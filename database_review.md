@@ -2,6 +2,20 @@
 >
 > [yaoyongzhou22@mails.ucas.ac.cn](mailto: yaoyongzhou22@mails.ucas.ac.cn)
 
+## 一些需要注意的地方
+
+1. 由于typora的markdown语法原因，代码块中许多地方会自动合并，比如
+
+   - `'!' + '='`会变为`!=`
+
+   - `'>' + '='`会变为`>=`
+
+   - `'<' + '='`会变为`<=`
+
+​	在SQL中，请使用分开书写的形式
+
+2. 待补充
+
 
 
 ## 第二章 概述(需要了解概念)
@@ -682,3 +696,299 @@ from R full outer join S on R.a = S.b;
     - Where + Group by：$\gamma_{Major, COUNT(ID) \rightarrow Number}(\sigma_{Year \geq 2013 \; and \; Year \leq 2014}Students)$ 统计各专业2013-2014年入学的学生人数
     - Group by之后只可能有(1)用于分组的组别列和(2)聚集的统计结果，其他的列都是违法的
     - 去重可以看做是分组的一个特例，即对所有列的组合进行分组，没有聚集
+    - 在分组之前进行选择，即上面所说的where子句
+    - 在分组之后进行选择，采用having子句
+  - 排序$\tau$
+    - SQL **Order by**
+    - desc从大到小排序，asc从小到大排序
+
+
+
+### 嵌套SQL
+
+- 概念：一个查询select中包含另一个select，内层被称为子查询，外层称为主查询。
+
+> 找出预定了103号船水手的名字
+>
+> ```sql
+> select S.sname 
+> from Sailors as S
+> where S.sid in (
+>     select R.sid
+>     from Reserves as R
+>     where R.bid = 103
+> );
+> ```
+>
+> ---
+>
+> 找出没有预定103号船水手的名字
+>
+> ```sql
+> select S.sname 
+> from Sailors as S
+> where S.sid not in (
+>     select R.sid
+>     from Reserves as R
+>     where R.bid = 103
+> );
+> ```
+
+- 涵义：相当于嵌套循环，主查询在外层，子查询在内层。对于主查询的每条记录，执行完整的子查询。
+
+-  分类
+
+  - 静态子查询：子查询中没有引用外层查询中的表和列，可以先计算一次静态子查询结果，然后反复使用
+
+  - 相关嵌套查询：子查询中引用了外层查询中的表或列
+
+    - > 找出预定了103号船水手的名字
+      >
+      > ```sql
+      > select S.sname 
+      > from Sailors as S
+      > where exists (
+      >     select *
+      >     from Reserves as R
+      >     where R.bid = 103 and R.sid = S.sid
+      >     -- 这里子查询引用的sid是主查询的列
+      > );
+      > ```
+
+- 子查询的比较操作
+
+  - `in`：属于
+
+  - `not in`：不属于
+
+  - `exists`：存在
+
+  - `not exists`：不存在
+
+  - `unique`：无重复元素
+
+  - `not unique`：有重复元素
+
+  - 前两个使用方法为`attr op(子查询)` 后面的使用方法为`op(子查询)`
+
+  - `Any`数值比较，与任意一个子查询结果相比成立就满足条件
+
+    - >练习13：找出评分高于**某个**名字包含Tom的水手的水手名字
+      >
+      >```sql
+      >select S.sname 
+      >from Sailors as S
+      >where S.rating > any(
+      >    select S2.rating
+      >    from Sailors as S2
+      >    where S2.sname like %Tom%
+      >);
+      >```
+
+  - `All`数值比较，与所有子查询结果相比成立才满足条件
+
+    - > 练习14：找出评分高于**所有**名字包含Tom的水手的水手名字
+      >
+      > ```sql
+      > select S.sname 
+      > from Sailors as S
+      > where S.rating > any(
+      >     select S2.rating
+      >     from Sailors as S2
+      >     where S2.sname like %Tom%
+      > );
+      > ```
+      >
+      > ---
+      >
+      > 练习15：找出评分最高的水手名字
+      >
+      > ```sql
+      > select S.sname 
+      > from Sailors as S
+      > where S.rating >= any(
+      >     select S2.rating
+      >     from Sailors as S2
+      > );
+      > 
+      > select S.sname 
+      > from Sailors as S
+      > where S.rating = (
+      >     -- 子查询使用聚集时，返回值为标量，不用加any/all
+      >     select max(S2.rating)
+      >     from Sailors as S2
+      > );
+      > ```
+      >
+      > ---
+      >
+      > 练习16：找出预定了所有船只的水手的名字
+      >
+      > ```sql
+      > select sname
+      > from Sailors
+      > where not exists(
+      >     -- 所有船
+      > 	(select Boats.bid from Boats) 
+      >     except
+      >     -- sid预定的所有船
+      >     (select Reserves.bid from Reserves
+      >      where Reserves.sid = Sailors.sid)
+      > );
+      > -- 判断差集结果是否都为空
+      > ```
+      >
+      > $$
+      > \pi_{sname}(\pi_{sid,sname,bid}(Sailors \bowtie Reserves \bowtie Boats)/\pi_{bid}(Boats))
+      > $$
+      >
+      > ---
+      >
+      > 练习17：计算评价高于8的水手的平均年龄
+      >
+      > ```sql
+      > select avg(age)
+      > from Sailors
+      > where rating > 8;
+      > ```
+      >
+      > ---
+      >
+      > 练习18：计算最年长水手的年龄
+      >
+      > ```sql
+      > select max(age)
+      > from Sailors;
+      > ```
+      >
+      > ---
+      >
+      > 练习19：计算最年长水手的名字和年龄
+      > ```sql
+      > select S.sname,S.age
+      > from Sailors as S
+      > where S.age = (select max(S2.age) from Sailors as S2);
+      > ```
+      >
+      > ---
+      >
+      > 练习20：找出比评分为10的最年长的水手年龄还要大的水手的名字
+      >
+      > ```sql
+      > select S.sname
+      > from Sailors as S
+      > where S.age > (
+      > 	select max(S2.age)
+      > 	from Sailors as S2
+      > 	where S2.rating = 10
+      > );
+      > ```
+      >
+      > ---
+      >
+      > 练习21：找出包含至少两个水手的评价等级
+      >
+      > ```sql
+      > select rating
+      > from Sailors
+      > group by rating
+      > having count(*) > 2;
+      > 
+      > -- 也可以使用朴素的匹配，但数量多了会很麻烦
+      > select S1.rating
+      > from Sailors as S1, Sailors as S2
+      > where S1.sid != S2.sid
+      > and S1.rating = S2.rating;
+      > ```
+      >
+      > ---
+      >
+      > 练习22：对于至少包含两个水手的评价等级，找出至少18岁的水手的平均年龄
+      >
+      > ```sql
+      > select avg(S1.age)
+      > from Sailors as S1
+      > where S1.age >= 18 
+      > and S.rating in(select S2.rating
+      >                from Sailors as S2
+      >                group by S2.rating
+      >                having count(*) >= 2);
+      > ```
+      >
+      > 
+
+### 完整性约束
+
+#### 简单约束
+
+- 域约束(Domain Constraint)：列的类型
+- 主键约束(Primary key)：附加声明只适用于主键是一个属性的情况；独立声明适用于任何情况，主键可以包含多个属性，不可以为NULL
+- 候选键约束(Unique)：附加声明和独立声明都同主键，可以为NULL
+- 外键约束(Foreign Key ... References ...)， 又称作引用完整性(Referential Integrity)
+- Not Null
+
+在记录增(insert)删(delete)改(update)时，数据库系统自动检查完整性约束的正确性，拒绝不正确的操作。此处需要留意外键约束的检查，其他约束只需要检查本表即可。
+
+- 外键约束的检查
+  - 主键所在的表插入记录不会有问题，外键所在表删除记录不会有问题
+  - 其他需要进行检查
+- 解决办法
+  - No Action：当检测出现问题，就拒绝执行
+  - Set null：外键列设为空
+  - Cascade：对外键列执行外键表中相应的修改
+
+#### 复杂约束
+
+- 表约束(Check)
+
+  - SQL **Check(condition)**
+  - 对单个属性的检查可以写在列的声明后面，在insert或update修改了check对应的列时，进行检查；delete默认**不检查**check条件(一定要思考一下会不会使得条件出问题，如果会，改用断言)
+  - 复杂检查单独写(性能代价可能很大)
+  - 约束命名，在约束前使用`Constraint`
+    - Deferred延迟执行（在一个事务结束时才检查） `set constraint Name Immediate`
+    - 也可以恢复立即执行（默认）`set constraint Name Immediate`
+
+- 断言(Assertion)
+
+  - 断言是schema的一部分，使用create, drop来处理，可以认为是独立于表单独定义的check
+  - 创建断言：`create assertion Name check (cond);`
+  - 删除断言：`drop assertion;`
+  - 在表增删改时都会检查断言
+  - 涉及多个表的Check约束，不能写成表约束，因为表约束只会检查当前定义的表
+
+- 触发器
+
+  - 当出现了给定的事件，系统检查给定的条件，如果条件满足，那么系统执行动作。
+
+  - 事件(Event: insert, delete, update) + 条件(Condition) + 动作(Action: SQL)
+
+  - 主动数据库：采用触发器的数据库
+
+  - ```sql
+    create trigger ImproveTrigger
+    -- 事件：在修改了GPA之后
+    after update of GPA on Student
+    referencing
+    	old row as OldTuple
+    	new row as NewTuple
+    for each row
+    -- 条件：GPA提升超过10%
+    when (NewTuple.GPA > OldTuple.GPA*1.1)
+    	insert into StudentImprovement
+    	-- 动作：记录到StudentImprovement表中
+    	values(NewTuple.ID, OldTuple.GPA, NewTuple.GPA);
+    ```
+
+  - 设计
+
+    - 事件：before / after + update of 'col' on 'table' / (insert / delete) on 'table'
+    - 引用新值和旧值：和具体的修改操作有关，但insert不需要旧值，delete不需要新值
+    - for each row：对每个记录都分别执行一次条件加动作
+    - for each statement：对于整个修改语句，只进行一次条件加动作
+    - 条件：可以缺失，即永远为真
+    - 动作：可以是一组语句，用begin和end括起来
+    - 有额外性能代价，优先使用前两种。
+
+
+
+合法的实例(Legal Instance)：满足完整性约束的实例
