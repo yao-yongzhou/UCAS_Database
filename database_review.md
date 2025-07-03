@@ -951,10 +951,23 @@ from R full outer join S on R.a = S.b;
 - 断言(Assertion)
 
   - 断言是schema的一部分，使用create, drop来处理，可以认为是独立于表单独定义的check
+
   - 创建断言：`create assertion Name check (cond);`
+
   - 删除断言：`drop assertion;`
+
   - 在表增删改时都会检查断言
+
   - 涉及多个表的Check约束，不能写成表约束，因为表约束只会检查当前定义的表
+
+  - ```sql
+    create assertion CSassert
+    	Check( not exists(
+            -- 这里是SQL语句
+        	));
+    ```
+
+  - 
 
 - 触发器
 
@@ -992,3 +1005,14 @@ from R full outer join S on R.a = S.b;
 
 
 合法的实例(Legal Instance)：满足完整性约束的实例
+
+### 逻辑设计
+
+ER图 --> 关系模型
+
+### 物理设计
+
+
+
+### 安全设计
+
