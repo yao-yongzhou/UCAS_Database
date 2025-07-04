@@ -1302,3 +1302,340 @@ where Sname = 'A';
 
   - RAID6
     - 类似RAID5，但每组unit会产生2个Parity块
+
+  - 组合RAID
+    - 基本思想：RAID X+Y
+    - 0+1
+    - <img src="F:\work\notes\UCAS_Database\fig\RAID_0_1.png" alt="RAID_0_1" style="zoom:50%;" />
+    - 1+0
+    - <img src="F:\work\notes\UCAS_Database\fig\RAID_1_0.png" alt="RAID_1_0" style="zoom:50%;" />
+    - 5+0
+    - <img src="F:\work\notes\UCAS_Database\fig\RAID_5_0.png" alt="RAID_5_0" style="zoom:50%;" />
+
+- 操作系统支持
+
+  - 本地文件系统(Local File System)：用户通过系统调用向内核态的文件系统发送请求
+
+  - 块设备：可以直接打开Raw Partition
+
+  - | 数据库                         | 文件系统                               |
+    | ------------------------------ | -------------------------------------- |
+    | 存储文件                       | 存储数据表                             |
+    | 通用，可以存储任何数据和程序   | 专用，针对关系型数据库进行存储         |
+    | 文件无结构，一串字节           | 数据表由记录组成，每个记录包含多个属性 |
+    | 操作系统内核中实现             | 用户态程序中实现                       |
+    | 提供基本编程接口：open、read等 | 提供SQL接口                            |
+
+  - 共同点：都存储在外存，数据根据硬盘特征分成定长的数据块
+
+- 数据在硬盘上的存储
+
+  - 硬盘最小存储访问单位：一个扇区，512B
+  - 文件系统访问硬盘的单位：4KB
+  - RDBMS最小的存储单位：database page size，可以设置为1或多个文件系统的page
+  - 在磁盘上进行空闲块的管理，一般依托操作系统的文件系统来管理
+
+##### 记录文件格式
+
+- 单个记录怎么存：行式记录结构
+
+  - 目标：记录所有属性，都连续存储在一个字节串中
+  - 定长列存在System catalog中，变长列存在每个记录中
+  - <img src="F:\work\notes\UCAS_Database\fig\Tuple_structure.png" alt="Tuple_structure" style="zoom:50%;" />
+  - Page内部结构
+  - <img src="F:\work\notes\UCAS_Database\fig\slotted_page.png" alt="slotted_page" style="zoom:50%;" />
+  - 跨块记录：当记录大于一个数据页时，可以划分为多个子记录，存储在不同的数据页中，多个子记录之间相互指向
+
+- 记录文件的组织
+
+  - 堆文件：记录是无序的，多条记录组成数据页，文件由多个数据页组成
+    - 插入：找到一个具有足够空间的page，插入新纪录
+
+  - 排序文件：记录按照某个顺序排序
+    - 插入：找到该记录应该放置的page，如果page有足够空间就直接插入；否则在临近page中找空间并移动记录，或者把当前page分裂为两个page，page header包含溢出块的地址
+  - 删除：找到对应page，删除page上的记录，有时需要保留对应的slot，记录一个删除标记
+  - 更新：
+    - 修改后长度比原长度短或不变，那么在原纪录位置修改
+    - 修改后长度比原长度长，那么就类似插入，可以先移动page内的tuple获得一片连续的空间放置记录；如果空间不足就考虑临近page或者溢出
+
+##### 缓冲池管理
+
+Buffer Pool在内存中，避免每次访问都需要读写硬盘，提高性能，减少I/O
+
+数据访问的局部性(Locality)
+
+- 时间局部性：同一数据元素可能会在一段时间内被多次访问——buffer pool
+- 空间局部性：位置相近的数据元素可能会一起被访问——Page
+
+Buffer Pool的组成
+
+- 内存空间分为page大小的单元，每个单元可以缓冲一个page
+- 其中，Buffer head结构记录Page的元信息
+  - 每次访问一个page都需要查找pageid索引，如果存在，那么返回内存地址并访问
+
+> 给定PageID = A,访问Page A的过程
+>
+> 1. 查找索引，判断Page A是否在buffer pool之中
+>
+> - 是，buffer pool hit，直接访问buffer pool中的Page即可
+> - 否，buffer pool miss，那么需要在buffer pool中找到一个可用的frame，从硬盘读page A，放入这个frame
+
+- 替换算法
+  - 如果有空闲块，直接替换
+  - 否则，找一个已经缓存的page（被称为Victim page），替换掉
+  - 如果这个块被修改过，是dirty块，则需要写回硬盘
+  - LRU(Least Recently Used)算法
+    - 找到时间戳最早的页并替换，需要检查N个page，代价为O(N)
+    - 也可以设计为，当一个页被访问时，自动将其移动到最前端，这样直接选择最后一个page即可，问题是回带来修改队列的代价
+  - Clock算法
+    - 在Buffer head中记录R，取值为0或1
+      - R=0表示访问时间比较近，R=0表示很久未访问
+      - 访问一个页后复制为1
+      - 在替换时，根据R进行判断，R=1则修改为0，并查看下一页；R=0替换掉
+
+### 索引概念
+
+```sql
+ select Name, GPA
+ from Student
+ where Major = '计算机';
+```
+
+- 数据的顺序访问：顺序读取表的每个page，对于每个page顺序访问每个tuple，检查条件是否成立，如果成立则读取name和gpa。
+
+- 如果表中有M个page的话，上述访问的I/O代价就是M；如果专业太多就会导致效率很低，大部分记录会被扔掉——引入索引，不需要顺序扫描整个表就可以找到相关的记录
+- 索引(Index)
+  - Key键-->索引-->Value值--记录+记录位置（Record + RecordID）
+  - 给定一个键，找到对应的值（比如某一个记录）
+  - 分类：树结构索引，哈希索引
+  - 聚簇索引（数据页与索引顺序一致）二级索引（不一致）
+
+### B+Tree索引
+
+<img src="F:\work\notes\UCAS_Database\fig\B+Tree.png" alt="B+Tree" style="zoom:50%;" />
+
+- 是二叉树的推广
+  - 每个节点是一个page
+  - 所有key存储在叶子节点
+  - 内部节点完全是索引作用
+
+- 所有叶子逻辑上组成一个数组
+  - <img src="F:\work\notes\UCAS_Database\fig\B+_tree_node.png" alt="B+_tree_node" style="zoom:50%;" />
+  - 内部Keys从左向右，从小到大排序
+- 内部节点
+  - <img src="F:\work\notes\UCAS_Database\fig\inter_node.png" alt="inter_node" style="zoom:50%;" />
+  - $subtree_0 < key_1 \leq subtree_1 < key_2 \cdots < key_n$
+- Search：从根节点到叶子节点，在每个节点中进行二分查找
+  - 代价：共有N个Key，每个节点的子节点数为B，树高为$O(log_BN)$，每个节点内部二分查找：$O(log_2B)$，总比较次数为$O(log_BN)\times O(log_2B)=log_2N$
+  - I/O次数为$O(log_BN)$
+- Insertion：先查找后插入，如果叶子节点未满，直接插入；否则需要节点分裂(node split)
+  - 分裂规则：平分为两个叶子节点，并平均分配已有的key，同时将新叶子节点插入父节点，如果父节点满了则继续分裂并向上插入
+- Deletion：先查找后删除
+  - 节点如何合并？原设计是少于一半合并，实际是节点为空才合并或者完全不合并
+- Range Scam：找到起始叶子节点，然后顺着叶子链接往下读，直到遇到范围终止值
+
+> 练习1
+>
+> 假设每个节点的child/pointer 个数最多为3
+>
+> 树中包含如下key：2、4、6、8、10、12、14、16、18、20、22、24
+>
+> 要求
+>
+> - 节点尽量放满
+>
+> - 内部节点至少有2个孩子
+>
+>   <img src="F:\work\notes\UCAS_Database\fig\answer1.png" alt="answer2" style="zoom:50%;" />
+>
+> ---
+>
+> 练习2
+>
+> 假设每个节点的child/pointer 个数最多为3
+>
+> 树中包含如下key：2、4、6、8、10、12、14、16、18、20、22、24
+>
+> 要求
+>
+> - 叶子节点至少保留一个空位
+> - 内部节点至少有2个孩子
+>
+> <img src="F:\work\notes\UCAS_Database\fig\answer2.png" alt="answer2" style="zoom:50%;" />
+>
+> ---
+>
+> 练习3：基于练习1的结果，画出`insert(21)`后的$B^+-Tree$
+>
+> <img src="F:\work\notes\UCAS_Database\fig\answer3.png" alt="answer3" style="zoom:50%;" />
+>
+> ---
+>
+> 练习4：基于练习3的结果，画出`insert(17)`后的$B^+-Tree$
+>
+> <img src="F:\work\notes\UCAS_Database\fig\answer4.png" alt="answer3" style="zoom:50%;" />
+
+
+
+##### 索引数据结构访问
+
+```sql
+select Name,GPA
+from Student
+where Major = '计算机';
+```
+
+在二级索引中搜索专业为计算机的项，对于每个匹配项，访问Tuple并读取Name和GPA
+
+如果有k个匹配项，则需要读k次
+
+- 选用顺序访问还是二级索引访问？
+  - 根据selectivity选择时间小的方案——query optimizer的任务
+
+### 哈希索引
+
+##### 哈希函数h()
+
+目的：键值key-->近乎随机的整数
+
+##### 哈希冲突
+
+原因：不同的键值key对应到同一个整数了
+
+解决方法
+
+1. 扩展hash bucket
+   - 每个hash bucket不仅存单个key值，而是可以包含多个slots，每个slot可以存一个key-value
+2. 增加额外的空间
+   - 在hash bucket数组之外，另外分配空间
+     - 链式哈希(chained hashing)
+       - 基于内存：每个链表元素包含1个或多个slots
+       - 基于外存：每个链表元素是一个page
+     - 增加溢出桶(overflow bucket)
+       - 插入时如果hash bucket已满，放入溢出桶
+       - 查询时先在hash bucket中找，如果没找到且hash bucket已满，再去溢出桶中查找
+     - 放入其他索引结构
+       - 类似溢出桶，只不过用索引代替溢出桶
+3. 允许使用其他hash bucket开放定址(Open Addressing)
+   - 允许一个key有多个可以选择的桶
+   - 方法
+     - 线性探测(Linear Probing)：不断地探测下一个位置，直到找到空位插入
+       - 平方探测(Quadratic Probing)：探测间隔变为平方
+       - Robin Hood hashing: 
+         - psl(probe sequence length): 当前位置-原始哈希位置，尽量减小psl
+         - 删除时不能直接删除，Tombstone方法：把被删除位置标记为一个特殊桶，查找时跳过，插入时当做空，可以插入
+     - 二选哈希(2-choice hashing)
+       - 采用两个哈希函数计算两个桶
+       - 插入：插入两个桶中较空的桶
+       - 查找：查看两个桶
+       - 效果：可以大幅提高空间利用率
+     - 二选哈希变形：cuckoo hashing
+       - 每个key有两个合法位置
+       - 布谷鸟换位：把一个key换到另一个合法位置的桶中
+
+##### Rehashing
+
+为什么需要rehashing?
+
+- 哈希索引需要扩容来存储更多的key，链式哈希需要扩容来提高性能
+
+方法：创建一个新的哈希索引，size变大，把原来的哈希索引插入到新的中，并释放原哈希索引的空间
+
+效果：可用空间翻倍，链式哈希的平均链长减半
+
+问题：rehashing时间长，导致很高的尾延迟
+
+优化目标：减少单次rehashing的时间
+
+- Extendible Hashing(可扩展哈希)
+  - 把单次Rehashing分解为多个小步骤，每个小步骤仅Rehashing一个hash bucket，从而降低单次索引的尾延迟
+  - 难点：确保每个小步骤之后仍然是合法的哈希索引
+  - 方案：采用一种特殊的哈希函数，使得size加倍后，原有的bucket和新的bucket有某种对应关系
+    - bucket下标：hash后的整数的前G位(G for global depth)
+    - L for Local depth， 每个page中的前L位相同
+    - 在插入时，比较分裂页的L和G，如果L==G，只需要G=G+1,；如果L<G，只需要分裂
+  - 存在的问题：当数据分布不均匀时，可能有大量的header，会造成一定的浪费和性能问题
+- Linear Hashing(线性哈希)：自行了解
+
+
+
+### 其他索引结构
+
+#### 字典树Trie/Radix Tree
+
+<img src="F:\work\notes\UCAS_Database\fig\Trie_Tree.png" alt="Trie_Tree" style="zoom:50%;" />
+
+- 把key切分为多个段，每段S bits（S for Span）
+
+- 从最高位到最低位，每段对应一层
+- 每段的取值作为下标访问指针数组，找到孩子的指针
+- 优点：易于支持变长键；缺点：空间浪费
+
+Span = 1时成为二叉树，空间浪费
+
+- Patricia Trie：按前缀合并，路径压缩
+
+Span = 8 存储一个字节时，也会产生只有一个孩子的节点，造成空间浪费
+
+- ART(Adaptive Radix Trie)：也是路径压缩，设计了256/48/16/4，分别支持对应数量个孩子
+- Masstree(Span = 64)：每层8B，每个节点都是一个B+-Tree
+
+#### ISAM索引(Indexed Sequential Access Method)
+
+排序文件+多层索引
+
+<img src="F:\work\notes\UCAS_Database\fig\ISAM.png" alt="ISAM" style="zoom:50%;" />
+
+- 插入：索引部分不变，数据部分增加溢出页
+
+<img src="F:\work\notes\UCAS_Database\fig\ISAM_insert.png" alt="ISAM_insert" style="zoom:50%;" />
+
+#### 支持多个重复的键
+
+相同的key有多个记录？
+
+1. 直接作为不同的项
+   - 问题1：需要修改索引结构，对于树而言很麻烦
+   - 问题2：很多项都有相同的key时，需要在索引中存很多份，额外空间开销
+2. 给key增加后缀
+   - New key = (key, suffix)
+   - 问题是重复存储key，新的key会变长
+3. 间接层
+   - 在树或者哈希表中只记录唯一的key
+   - 多个RecordId记录在间接层中
+
+#### 位图索引(Bitmap Index)
+
+概念
+
+- 把间接层记录为多个位图
+- 每个不同的key对应一个bitmap：1表示取值为key，0表示取值不为key
+- 适用于unique key少的情况下：对于姓名显然就不合适
+
+优势
+
+- 过滤条件的运算可以直接通过位运算来实现
+
+压缩
+
+- 当1的个数很少时，可以进行压缩
+- 记录两个1之间的距离，使用时解压进行处理
+
+#### 倒排索引(Inverted Index)
+
+主要用于对文本进行索引
+
+目标：给定关键词term，找到相关文档，并对结果排序
+
+需求：同一个key对应着大量的记录
+
+在term上建立索引很简单，记录每个term对应的DocID和TF(term frequency)是难点
+
+引入结构：倒转表(Inverted List)
+
+- Term --> (DocID_1, TF_1), (DocID_2, TF_2), ... ,  (DocID_n, TF_n)
+- DocID从小到大排序，只记录相邻两项DocID的差值
+- 采用适当的变长整数编码
+
+### 多维索引概念
+
