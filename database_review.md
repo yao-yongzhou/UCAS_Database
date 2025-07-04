@@ -994,7 +994,7 @@ from R full outer join S on R.a = S.b;
 
   - 设计
 
-    - 事件：before / after + update of 'col' on 'table' / (insert / delete) on 'table'
+    - 事件：`before / after + update of 'col' on 'table' / (insert / delete) on 'table'`
     - 引用新值和旧值：和具体的修改操作有关，但insert不需要旧值，delete不需要新值
     - for each row：对每个记录都分别执行一次条件加动作
     - for each statement：对于整个修改语句，只进行一次条件加动作
@@ -1010,9 +1010,295 @@ from R full outer join S on R.a = S.b;
 
 ER图 --> 关系模型
 
-### 物理设计
+- 下划线对应主键
+
+- 参与实体的主键作为外键，联系集的属性
+
+  
+
+单一实体集内部的联系
+
+Key constraint-->ER图的联系集上每个键约束的实体集，主键都是联系集的候选键
+
+Total participation --> not null
 
 
 
-### 安全设计
+弱实体集
+满足key constraint + Total participation
 
+### 物理设计：索引
+
+#### 创建索引(Index)
+
+- DDL的一部分：`create、drop`
+
+- 建立索引：`create index 索引名 on 表名(列名,...,列名)`
+
+#### 删除索引
+
+不同数据库语法有区别
+
+- Postgresql:` drop index 索引名`
+
+### 安全设计：视图(View)
+
+视图是一个关系表，但是不直接存储，需要时直接从视图定义计算得到。常用语需要经常查询的内容
+
+- 创建视图（可以对属性重命名）
+
+```sql
+create view 视图名(列名，...，列名) as
+	-- 下面是正常的sql查询语句
+	select 语句;
+```
+
+- 删除视图
+
+```sql
+drop view 视图名;
+```
+
+- 与基本表的对比
+
+|        | 读(select) | 写(insert/delete update) |
+| :----- | ---------- | ------------------------ |
+| 基本表 | ✅          | ✅                        |
+| 视图   | ✅          | 特殊情况下可以更新视图   |
+
+- 视图读
+
+``` sql
+select Cname
+-- 数据库系统实际上会把视图展开，变成嵌套查询
+from 视图名
+where Sname = 'A';
+```
+
+- 视图写
+  - 一般来说不允许对视图的增删改操作
+  - 但满足特定条件时可以更新
+  - Updatable View：视图的记录直接对应到基本表的记录
+    - 不能有连接，From必须是单个关系——因为很难从连接的结果反推原表的内容。
+    - Where如果有子查询，子查询不能包含R
+    - Select必须包含足够多的列——插入时可以用NULL或默认值填充剩余的列。
+    - 没有去重和聚合——每个结果的行只对应一个原始行。
+  - 对视图实际操作时是转化为基本表的操作来进行
+  - 需要慎重
+- SQL通过Grant和Revoke命令来进行控制访问
+  - 控制访问：**Grant**，授予特定用户table或view的访问权限
+    - `grant 访问权限 on 对象 to 用户[with grant option]`
+    - 对象：基本表或者视图
+    - 访问权限：
+      - select
+      - insert(列名)：插入指定列
+      - update(列名)：修改指定列
+      - delete
+      - references
+      - all
+    - `with grant option`这个用户可以把得到的权限授予给别人
+    - 数据定义语句的权利(create, alter, drop)不能授予或收回
+    - 建立视图时必须拥有对用到的表的select权限
+  - 去除访问权限：**Revoke**
+    - `revoke [grant option for] 访问权限 on 对象 from 用户 [cascade|restrict]`
+    - 对象：基本表或视图
+    - 访问权限同grant
+    - `cascade`同`with grant option`(会顺带着回收衍生的权限)
+    - `restrict`收回权限，若有衍生权限则拒绝执行
+    - `grant option for`只收回进一步授权的权限
+  - 授权图
+    - 授权者----(授权者，被授权者，权限，yes/no)---->被授权者
+    - 如果撤销了基本表授权，对应视图会被删除
+  - 
+
+### 数据冗余与范式
+
+#### 数据冗余
+
+冗余：同样的数据在数据库中被存储了多次，会带来冗余存储，更新/插入/删除异常。
+
+解决方法：模式分解
+
+#### 范式介绍
+
+分类
+
+- 函数依赖(FD)
+- 多值依赖(MVD)
+- 连接依赖(JD)
+
+范式：规范的形式，关系模式的每种范式，消除了一种冗余。
+
+<img src="/Users/yaoyongzhou/Library/Application Support/typora-user-images/NF.png" alt="image-20250703161423096" style="zoom: 33%;" />
+
+函数依赖(FD)
+
+- $X\rightarrow Y$任意两个元组在X上取值相同，则他们在Y上取值也相同
+- 称为：**X函数确定Y，Y函数依赖于X**
+
+- 候选键是一种特殊的函数依赖
+
+  - 定义：满足$X\rightarrow U; \; \forall Y \sub X , Y\nrightarrow U$
+  - 超键(Super key)：只满足$X\rightarrow U $
+
+- 推导：
+
+  - Armstrong规则
+    - 自反律：$if\;Y \subseteq X,\; then\; X\rightarrow Y$
+    - 增补律：$if\;Y \rightarrow X,\; then\; \forall Z, XZ\rightarrow YZ$
+    - 传递律：$if\;X \rightarrow Y\; and \;Y \rightarrow Z,\; then\; X\rightarrow Z$
+  - 分解: $if\;X \rightarrow YZ\; \; then\; X\rightarrow Z \; and \;X\rightarrow Y$
+    - 证明：自反+传递
+  - 合并: $if\;X\rightarrow Z \; and \;X\rightarrow Y \;then \;X \rightarrow YZ\; $
+    - 证明：增补两次
+  - 分解合并是等价的
+
+- 函数依赖的闭包
+
+  - 反复应用Amstrong规则，直到不增加新的函数依赖为止
+
+  >
+  >求函数依赖的闭包
+  >
+  >Contracts(**c**ontracted, **s**upplied, **p**rojected, **d**eptid, **p**artid, **q**uantity, **v**alue)
+  >
+  >假设已知以下函数依赖关系
+  >
+  >- C是主键, C--> SJDPQV
+  >- 一个项目买一种零件只用一个合同：JP-->C
+  >- 一个部门从一个供货商至多购买一种零件：DS-->P
+  >
+  >即，已知$F= \{C\rightarrow SJDPQV,\; JP\rightarrow C,\; DS\rightarrow P\}$，求$F^+$
+  >
+  >- 增补律：$C\rightarrow SJDPQV\;so\;C\rightarrow CSJDPQV$
+  >- 传递律：$JP\rightarrow C\; so\;JP\rightarrow CSJDPQV$
+  >- 增补+传递：$DS\rightarrow P,\; JD \rightarrow JP,\; JDS\rightarrow CSJDPQBV$
+  >- 这里C、JP、JDS都是候选键
+
+#### 函数依赖与2NF，3NF，BCNF的关系
+
+- 类型1:平凡依赖，属性集X-->单个属性A——不存在数据冗余问题
+- 类型2:X是超键——也是正常的，没有数据冗余问题
+- 类型3:部分依赖**消除后变成2NF**，X是候选键的一部分，A是非键属性——会导致冗余
+- 类型4:非键传递依赖**消除后变成3NF**，X包含非键的属性，X不是超键，A是非键属性——会产生冗余
+- 类型5:对于键属性的函数依赖**消除后变成BCNF**——会产生冗余
+
+- 1NF(属性均为原子类型)--(消除部分依赖)-->2NF--(消除非键传递依赖)-->3NF--(消除对键属性的函数依赖)-->BCNF
+- 判断方法：找出所有的依赖关系，然后依次判断是否满足几种依赖
+
+
+
+#### 关系模式的分解
+
+把关系模式R分解为X和Y($\pi_X(R) \pi_Y(R)$)
+
+分解通过投影实现，投影后要去重——可能会引起信息丢失
+
+无损分解
+
+- 当且仅当分解后两个表的自然连接可以得到原始表，即$\pi_X(R)\bowtie \pi_Y(R) = R$
+- 与函数依赖的关系：如果可以证明$R1 \cup R2 = R$且$R1 \cap R2 \rightarrow R1$，那么对R进行R1和R2的分解是无损分解
+  - 理解：这个连接的join key：$R_1 \cap R_2$
+  - $R_1 \cap R_2 \rightarrow R_1$，R1的主键是R2的外键，主键外键之间的连接是无损的，但这只是无损的必要条件
+- BCNF只允许$X\rightarrow A$
+  - 平凡依赖：$A\in X$
+  - X是超键
+- 如果不满足BCNF，则可以无损分解
+  - $X\sub R$， $A\in R$是单独属性，$A\notin X$不平凡依赖
+  - 对R进行XA和R-A的分解
+
+
+
+#### 多值依赖(MVD)
+
+- $X\rightarrow \rightarrow Y$
+  - $Z=R-XY$
+  - 在X相同的情况下，Y和Z的全组合都出现
+- 函数依赖是多值依赖的特例
+- 平凡多值依赖
+  - $Y\subseteq X$
+  - $XY =R$
+
+
+
+## TODO: NF这一块太不扎实了
+
+
+
+#### 4NF
+
+
+
+#### 5NF
+
+
+
+
+
+## 数据存储与访问
+
+
+
+### 概述
+
+#### 数据库系统内部架构概述
+
+通常的系统为Client / Server形式
+
+前端
+
+- **SQL Parser**：将SQL语句变成解析好的内部表达
+- **Query Optimizer**：将SQL内部表达变为Query Plan
+
+后端
+
+- **Data storage and indexing**：在硬盘上存储数据并高效访问
+- **Buffer pool**：在内存中缓存硬盘的数据，数据重复使用，优化写操作
+
+- **Execution Engine**：根据query plan，完成相应的运算和操作，得到SQL语句的结果
+- **Transaction management**：事务管理，实现ACID，后续介绍
+
+#### 数据存储与访问概述
+
+- 存储层次：见之前
+
+- 磁盘阵列(Disak Array)
+
+  - RAID(Redundant Array of Independent Disks)
+
+  - RAID0
+
+    - Striping(条带)
+    - <img src="/Users/yaoyongzhou/Library/Application Support/typora-user-images/image-20250703205630219.png" alt="image-20250703205630219" style="zoom:25%;" />
+    - 顺序读：映射为K个硬盘的顺序访问，K倍带宽
+    - 随机读：映射为单块硬盘的随机访问，并发支持K个随机访问，K倍带宽
+    - 随机写/顺序写：同读操作
+    - 可见空间：K*单个磁盘空间
+    - 不支持恢复
+
+  - RAID1
+
+    - Mirroring（镜像）
+    - K个磁盘存储完全一样的数据
+    - 顺序读/随机读：K个硬盘并发访问，K倍带宽
+    - 随机写/顺序写：每个盘都得写，需执行k次，不能并发执行
+    - 可见空间：1*单个磁盘空间，利用率为1/K
+    - 恢复：插入一块替换盘，然后复制全盘
+
+  - RAID5
+
+    - Parity(异或)，又称奇偶校验，一组 $A_p = A1\oplus A2 \oplus A3$
+    - <img src="/Users/yaoyongzhou/Library/Application Support/typora-user-images/image-20250703210716324.png" alt="image-20250703210716324" style="zoom:25%;" />
+
+    - 把parity块轮流放置是因为单独放置会降低读写性能(这一块盘就不能用了)
+
+    - 顺序读/随机读：类似RAID0
+
+    - 顺序写/随机写：每写一个Stripe Unit要写两个磁盘，分别是数据和Parity，为了计算Parity要读两个盘，即旧的数据和旧的Parity
+
+    - 可见空间：(K-1)*磁盘空间
+
+    - 恢复：一个盘坏了，读剩余K-1个盘，计算新盘数据即可
+
+  - RAID6
+    - 类似RAID5，但每组unit会产生2个Parity块
