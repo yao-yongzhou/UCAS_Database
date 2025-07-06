@@ -1639,3 +1639,437 @@ Span = 8 存储一个字节时，也会产生只有一个孩子的节点，造�
 
 ### 多维索引概念
 
+##### 基本概念：
+
+前面讲的都是多个列上的索引，这里开始介绍多维索引(2-10列，更高维的本课暂不涉及)
+
+- 应用场景：地理信息系统、集成电路设计、多列过滤的实现
+- 典型查询类型
+  - 部分匹配：制定一维或者多维的值，查找匹配对象
+  - 范围查询：给出一维或多维的范围，查找匹配对象
+  - 最近邻查询：查找与给定点最近的点
+
+##### 基于单维索引的支持 & 多维编码
+
+- 方法1：简单拼接
+  - 多个属性拼接为一个key
+  - B+-Tree
+    - 可以先比较单个属性，相同时再比较下一个——本质上仍然是单维的索引，但是不同列的重要性不同
+    - 对应到上面几个查询类型，如果给出后面属性的值或范围而不指定前面属性的话，很难支持，可能会退化为全树搜索
+  - hash表
+    - 拼接之后本质上也是单维索引
+    - 还是会遇到上面的无法支持典型查询类型的问题
+- 方法2：Z-Order编码
+  - 基本思想：多维数据放入一维，把二维数据点重排列嵌入一维数轴，这样二维空间中相近的点在排列的一维顺序中也接近
+  - <img src="F:\work\notes\UCAS_Database\fig\z_order_map.png" alt="z_order_map" style="zoom:50%;" />
+  - 编码转换映射计算：
+  - $X=X_kX_{k-1}\dots X_1X_0\;\;Y=Y_kY_{k-1}\dots Y_1Y_0$
+  - $Z-code(X,Y) = X_kY_kX_{k-1}Y_{k-1}\dots X_1Y_1X_0Y_0$
+
+##### 
+
+### 多维散列索引
+
+#### 网格文件(Grid File)
+
+- 基本思想：把整个空间切分为一个个长方形的网格，每个网格就是一个桶（存放在数据页中），桶矩阵记录桶的元信息
+
+- 划分：每个网格包含数量基本相似的记录
+- 多维：
+  - 网格是多维空间中的一个矩形空间
+  - 每维的属性，按从小到大排列划分为多个区间
+  - 网格文件由两个数据结构组成
+    - 桶矩阵，K维矩阵($S_1 \times S_2\times \dots \times S_k$个元素)
+    - 每个矩阵元素对应一个网格，记录网格的存储位置，如果数据页不够大，那么采用溢出链
+
+- 查询：
+
+  - 部分查询：先根据一维数据找到相关的桶，然后在桶网格页内搜索
+  - 范围查询：找到相关的网格，然后读取网格页，进一步搜索
+  - 最近邻查询：先搜索所在网格，再搜索周围网格
+
+- 插入：
+
+  - 可以分配一个溢出页，也可以进一步划分网格
+
+- 关键难点：
+
+  1. 给定一组数据如何计算网格 
+
+  2. 插入数据时如何划分网格
+
+
+
+#### 分段散列(Partitioned Hashing)
+
+基本思想：每个纬度一个哈希函数，把各个维度的哈希函数的输出拼接在一起
+
+如何查询：
+
+- 部分匹配：给定部分维，可以穷举其他维，来选择相应的桶
+- 范围查询/最近邻：无法支持，哈希不支持不等值比较
+
+对比网格文件：
+
+- 查询上，分段散列不支持范围查询/最近邻；网格文件都支持
+- 数据结构上，分段散列把数据比较均匀地分布到桶上；网格文件当维数比较高时，可能存在大量的空网格
+
+### 多维树结构索引
+
+#### 四叉树(Quad Tree)
+
+二维：
+
+- 每个树节点代表二维空间中的一个长方形，内部节点等分为四个子长方形，对应四个孩子节点
+- 如果子树的记录点可以存放在一个页中，就可以用一个叶子节点表示；否则就生成一个内部节点，需要进一步划分为4个孩子节点
+- <img src="F:\work\notes\UCAS_Database\fig\quad_tree.png" alt="quad_tree" style="zoom:50%;" />
+- <img src="F:\work\notes\UCAS_Database\fig\quad_tree_example.png" alt="quad_tree_example" style="zoom:50%;" />
+- 点查询：与当前节点比较，判断是四个象限里哪一个，然后找下去，找到一条根到叶子的路径
+- 部分匹配：只看一个维度的值进行判断
+- 范围查询：同上，依次找
+- 最近邻：找最近的块，其余块剪枝掉
+- 插入：找到叶子结点，如果不满直接插入；如果已满，则分裂为4部分
+
+K维四叉树：
+
+每个树结点代表k维空间中的一个长方形，内部结点长方形等分为$2^k$个子长方形，对应$2^k$个孩子结点
+
+#### KD-Tree
+
+- 每层轮流用下一个维度，这个维度分为两半
+
+<img src="F:\work\notes\UCAS_Database\fig\kd_tree.png" alt="kd_tree" style="zoom:50%;" />
+
+- <img src="F:\work\notes\UCAS_Database\fig\kd_tree_example.png" alt="kd_tree_example" style="zoom:50%;" />
+
+- 查询：
+  - 部分匹配：递归遍历整个树，在对应维度剪枝
+  - 范围查询：类似部分匹配
+  - 最近邻：类似四叉树
+- 插入：
+  - 首先查询到插入位置
+  - 然后插入新节点
+  - 可能会使树不均衡
+- 删除：
+  - 删除叶子节点无所谓，但删除内部节点需要找到对应维度的替代节点
+  - <img src="F:\work\notes\UCAS_Database\fig\delete.png" alt="delete" style="zoom:50%;" />
+- 支持外存存储
+- 多路KD Tree
+
+#### R-Tree
+
+MBR(Minimum Bounding Rectangle)
+
+外接矩形
+
+每个索引项、树结点都代表一个区域，称为MBR，是包含该索引项、子树中所有索引项的最小的外接矩形
+
+两个树节点的MBR可能有重叠的区域，B+Tree没有
+
+- 叶子节点：
+  - 数据记录：存储具体对象的边界点信息
+  - MBR：单个对象的外接矩形
+  - 没有兄弟链表
+- 内部节点：
+  - MBR：子树的外接矩形
+  - 子树的MBR可能相交
+- 对节点的要求
+  - 每个节点中MBR的项满足$m<n<M$
+
+<img src="F:\work\notes\UCAS_Database\fig\r_tree.png" alt="r_tree" style="zoom:50%;" />
+
+- 查询：类似四叉树
+- 插入：
+  - 问题1：重叠的孩子？
+    - 目标：减少MBR增量，选择增量最小的孩子节点
+  - 问题2：节点分裂？
+    - 目标：分裂后的两个节点MBR较小
+- 删除：
+  - 首先查询，然后删除mbr
+  - 如果删除后叶子节点满足$n\geq m$，完成
+  - 否则，需要删除整个叶子结点，并将每个MBR都重新插入R-Tree
+
+### 物理数据库设计原则（索引选择）
+
+#### 原则1：是否建立索引？
+
+数据库自动建立的索引：主键、外键
+
+用户建立索引：目的是快速获取满足某种过滤条件的记录，只有where语句中涉及的列才需要索引
+
+#### 原则2：索引key的选择，索引的种类
+
+等值条件：哈希索引，B+树
+
+范围选择：B+树
+
+
+
+数据很少写：Bitmap index
+
+文本数据：Inverted index
+
+多维数据：多维索引
+
+
+
+#### 原则3：多属性索引key
+
+where语句中包含同一个表的多个属性
+
+可以考虑：单维索引 / 单维索引+多维编码 / 多维索引
+
+#### 是否聚簇(Clustered) 索引
+
+基本原则：一个表只能按照一个索引进行聚簇，仅有一个主索引，其他索引都是二级索引
+
+范围查询收益最大
+
+#### 考虑索引的开销
+
+收益：提高查询速度
+
+开销：
+
+- 空间开销：外存开销、内存开销
+- 时间开销：维护开销，当对表的内容进行修改时，也要修改对应的索引
+
+
+
+#### 只需要索引就可以执行的查询
+
+如果查询的所有列都可以在索引中找到，那么这个查询实际上可以用索引来完成
+
+- Covering Index
+
+#### 辅助工具
+
+
+
+## 查询处理
+
+### 概述
+
+#### 系统目录(System Catalog)
+
+又称目录表，或数据字典，或目录
+
+存储数据的元信息
+
+- table信息
+- 索引index的信息
+- 视图view的信息
+
+<img src="F:\work\notes\UCAS_Database\fig\catalog_content.png" alt="catalog_content" style="zoom:50%;" />
+
+系统目录的存储：目录也可以存储在关系表中
+
+#### 查询执行方式
+
+查询计划(Query Plan)，由query optimizer产生，最终将表现为一棵operator tree
+
+#### 执行细节
+
+- Operator-at-a-time：实现简单，但是中间结果表的代价较高
+- Tuple-at-a-time：产生一个tuple就返回给父节点，减少中间结果
+  - 调用很多次，每次返回一条记录
+  - 又称火山模型、iterator迭代方法
+  - 
+
+### 选择
+
+### 投影
+
+### 排序和外排序
+
+
+
+## 事务处理 Transaction Processing
+
+### 事务概念和ACID
+
+典型例子：银行业务、订票、购物等
+
+大量并发用户，少量随机读写操作
+
+#### 事务
+
+概念：
+
+- 由一到多个操作组成
+
+- 读：select
+
+- 写：insert/delete/update
+
+- 组成一个事物的所有操作满足ACID性质
+
+表现形式：
+
+- 默认：单个语句
+
+- 特殊语句来标记事物的开始和结束：多个语句
+
+  - 开始一个Transaction：`begin transaction`
+
+  - 成功结束一个Transaction：`commit transaction`——当前事务成功结束，数据库系统保证事务的任何写操作都不丢失
+
+  - 异常终止一个Transaction：`rollback transaction`——丢弃事物的所有修改状态，返回初始状态
+
+ACID：DBMS保证事物的ACID性质
+
+- **A**tomicity原子性——要么完全执行，要么完全没有执行
+  - 数据库内部异常；掉电；事务逻辑本身决定没有达到预期需要非正常终止
+  - 前两种需要自动恢复
+- **C**onsistency一致性——从一个正确状态转换到另一个正确状态
+- **I**solation隔离性——每个事务与其他并发事务互不影响
+- **D**urability持久性——commit之后，结果持久有效，crash也不消失
+
+
+
+### 并发控制Concurrency Control
+
+#### 数据冲突和可串行化
+
+同一个数据并发读可以，但如果并发写或者一读一写，就会导致数据竞争(data race)，需要合适的调度(Schedule)
+
+- 正确性问题：如何判断一组事务正确执行
+- 存在一个顺序，按照这个顺序依次串行执行这些事务，得到的结果与并行执行相同
+- 可串行化Serializable
+
+使用优先图来判断一个并发执行是否可串行化
+
+- 图的顶点：每个事务
+- 图的有向边：如果$T_i$与$T_j$的操作冲突，并且$T_i$的操作先于$T_j$的操作，那么就有一条从$T_i$指向$T_j$的边
+- **可串行** 等价于 **优先图中没有环**
+- 拓扑排序即可得到一个串行化的顺序
+
+数据冲突带来的问题
+
+- Read uncommitted data 写后读：T2 commit之前，T1读了T2修改过的数据
+- <img src="F:\work\notes\UCAS_Database\fig\data_race_1.png" alt="data_race_1" style="zoom:50%;" />
+- Unrepeatable reads读后写：T1在T2 commit之前写了T2读的数据，T2再次读同一个数据，会有不同的值
+- <img src="F:\work\notes\UCAS_Database\fig\data_race_2.png" alt="data_race_2" style="zoom:50%;" />
+- Overwrite uncommitted data 写后写：T2 commit之前，T1重写了T2已经修改了的数据
+- <img src="F:\work\notes\UCAS_Database\fig\data_race_3.png" alt="data_race_3" style="zoom:50%;" />
+
+解决数据冲突的思路：两大解决方案
+
+- 悲观假设：假设数据竞争经常出现
+- 乐观假设：数据竞争很少见
+
+
+
+### Pessimistic 加锁
+
+#### 2 Phase Locking
+
+集中加锁+集中解锁
+
+- 加锁：在事务中，对每个需要访问的数据加锁
+- 解锁：在commit前，集中解锁（解锁开始，就不会再加锁了）
+- 可以避免两个事务同时执行
+
+
+
+2PL是可串行的，可以使用优先图证明
+
+
+
+#### 锁如何实现
+
+- lock manager：维护一个哈希表，key是数据库中对象的标识，value是正在拥有这个锁的事务以及等待这个锁的事务
+- 加锁和解锁：修改hash表中的项，必须保证是原子操作
+- 细节1：读锁可共享，写锁需要互斥
+- 细节2：lock granularity
+  - 锁的粒度，写锁的祖先必须为写锁
+  - 加锁情况
+  - <img src="F:\work\notes\UCAS_Database\fig\lock1.png" alt="lock1" style="zoom:50%;" />
+- 实现细节3：deadlock
+  - 死锁条件：循环等待
+  - 死锁避免：
+    1. Preordering of Resources：预先确定lock对象的顺序
+    2. NO_WAIT：事务加锁不成功立刻abort，缺点是可能造成很多rollback
+    3. WAIT_DIE：规定事务的优先级顺序，加锁不成功时，比较两个事务的优先级
+       - 尽量abort优先级低的事务
+  - 死锁检测：对长期等待的事务检查是否有循环等待，如果有就选择环上其中一个事务回卷
+
+### 基于时间戳的并发控制
+
+乐观假设：冲突很少见，就不需要加锁
+
+- Time-Stamp Ordering：基于时间戳确定事务顺序
+  - 在事务开始时，分配一个时间戳TS(O)
+  - 每个数据库对象O
+    - RTS(O)：读O的最大事务时间戳
+    - WTS(O)：写O的最大事务时间戳
+  - 基本思想：确保事务能够按照时间戳顺序执行
+    - 当T访问O时，比较TS(O)和RTS(O)、WTS(O)
+    - 发现异常时，abort/restart事务
+  - <img src="F:\work\notes\UCAS_Database\fig\trans_read.png" alt="trans_read" style="zoom:50%;" />
+  - <img src="F:\work\notes\UCAS_Database\fig\trans_write.png" alt="trans_write" style="zoom:50%;" />
+  - <img src="F:\work\notes\UCAS_Database\fig\btso.png" alt="btso" style="zoom:50%;" />
+
+### Multi-version Concurrency Control(MVCC)
+
+- 单版本：原地修改记录
+
+- 多版本：tuple+timestamp作为一个版本
+  - 在更新tuple时，不修改原来的tuple，而是产生一个新版本
+  - 按照版本排序，多个版本组成一个列表
+  - 优点
+    1. 并发控制：可能减少由于读写冲突引起的abort
+    2. time-travel：可以回到过去的时间点完成查询
+- 目标：事务执行顺序=事务时间戳顺序
+- 与basic time stamp ordering不同的是，每个数据库对象O有多个版本，每个版本有一个写时间戳，每个版本会记录所有的读时间戳
+- T读O：找到一个最大的版本满足**写时间戳小于等于TS(T)**
+  - 所有的读都可以满足，不会引起abort
+- T写O：找到比TS(T)大的下一个version
+- <img src="F:\work\notes\UCAS_Database\fig\mvcc_write.png" alt="mvcc_write" style="zoom:50%;" />
+- <img src="F:\work\notes\UCAS_Database\fig\mvcc_write1.png" alt="mvcc_write1" style="zoom:50%;" />
+
+### Optimistic Concurrency Control(OCC)
+
+每个事务有一个私有工作区，其他事务不可见
+
+执行过程
+
+<img src="F:\work\notes\UCAS_Database\fig\occ.png" alt="occ" style="zoom:50%;" />
+
+### Snapshot Isolation
+
+Snapshot快照：一个时点的数据库数据状态快照
+
+算法原理：
+
+- 在事务开始时取一个快照
+- 读操作总是允许
+- 写操作先临时保存，在提交时检查写是否有冲突，有冲突就abort
+- 两个存在写冲突的事务，先提交者成功
+
+#### 串行化分析
+
+并不一定是可串行化的，因为在验证时只关注了写写冲突
+
+
+
+#### 乐观假设的并发控制
+
+优点：冲突很少时，没有加锁的开销
+
+缺点：冲突较多时，需要不断重试，浪费大量资源
+
+
+
+### Crash Recovery崩溃恢复
+
+#### 持久性的实现
+
+
+
+
+
+
+
+
+
