@@ -1306,11 +1306,11 @@ where Sname = 'A';
   - 组合RAID
     - 基本思想：RAID X+Y
     - 0+1
-    - <img src="F:\work\notes\UCAS_Database\fig\RAID_0_1.png" alt="RAID_0_1" style="zoom:50%;" />
+    - <img src=" \fig\RAID_0_1.png" alt="RAID_0_1" style="zoom:50%;" />
     - 1+0
-    - <img src="F:\work\notes\UCAS_Database\fig\RAID_1_0.png" alt="RAID_1_0" style="zoom:50%;" />
+    - <img src=" \fig\RAID_1_0.png" alt="RAID_1_0" style="zoom:50%;" />
     - 5+0
-    - <img src="F:\work\notes\UCAS_Database\fig\RAID_5_0.png" alt="RAID_5_0" style="zoom:50%;" />
+    - <img src=" \fig\RAID_5_0.png" alt="RAID_5_0" style="zoom:50%;" />
 
 - 操作系统支持
 
@@ -1341,9 +1341,9 @@ where Sname = 'A';
 
   - 目标：记录所有属性，都连续存储在一个字节串中
   - 定长列存在System catalog中，变长列存在每个记录中
-  - <img src="F:\work\notes\UCAS_Database\fig\Tuple_structure.png" alt="Tuple_structure" style="zoom:50%;" />
+  - <img src=" \fig\Tuple_structure.png" alt="Tuple_structure" style="zoom:50%;" />
   - Page内部结构
-  - <img src="F:\work\notes\UCAS_Database\fig\slotted_page.png" alt="slotted_page" style="zoom:50%;" />
+  - <img src=" \fig\slotted_page.png" alt="slotted_page" style="zoom:50%;" />
   - 跨块记录：当记录大于一个数据页时，可以划分为多个子记录，存储在不同的数据页中，多个子记录之间相互指向
 
 - 记录文件的组织
@@ -1412,7 +1412,7 @@ Buffer Pool的组成
 
 ### B+Tree索引
 
-<img src="F:\work\notes\UCAS_Database\fig\B+Tree.png" alt="B+Tree" style="zoom:50%;" />
+<img src=" \fig\B+Tree.png" alt="B+Tree" style="zoom:50%;" />
 
 - 是二叉树的推广
   - 每个节点是一个page
@@ -1420,10 +1420,10 @@ Buffer Pool的组成
   - 内部节点完全是索引作用
 
 - 所有叶子逻辑上组成一个数组
-  - <img src="F:\work\notes\UCAS_Database\fig\B+_tree_node.png" alt="B+_tree_node" style="zoom:50%;" />
+  - <img src=" \fig\B+_tree_node.png" alt="B+_tree_node" style="zoom:50%;" />
   - 内部Keys从左向右，从小到大排序
 - 内部节点
-  - <img src="F:\work\notes\UCAS_Database\fig\inter_node.png" alt="inter_node" style="zoom:50%;" />
+  - <img src=" \fig\inter_node.png" alt="inter_node" style="zoom:50%;" />
   - $subtree_0 < key_1 \leq subtree_1 < key_2 \cdots < key_n$
 - Search：从根节点到叶子节点，在每个节点中进行二分查找
   - 代价：共有N个Key，每个节点的子节点数为B，树高为$O(log_BN)$，每个节点内部二分查找：$O(log_2B)$，总比较次数为$O(log_BN)\times O(log_2B)=log_2N$
@@ -1446,7 +1446,7 @@ Buffer Pool的组成
 >
 > - 内部节点至少有2个孩子
 >
->   <img src="F:\work\notes\UCAS_Database\fig\answer1.png" alt="answer2" style="zoom:50%;" />
+>   <img src=" \fig\answer1.png" alt="answer2" style="zoom:50%;" />
 >
 > ---
 >
@@ -1461,19 +1461,19 @@ Buffer Pool的组成
 > - 叶子节点至少保留一个空位
 > - 内部节点至少有2个孩子
 >
-> <img src="F:\work\notes\UCAS_Database\fig\answer2.png" alt="answer2" style="zoom:50%;" />
+> <img src=" \fig\answer2.png" alt="answer2" style="zoom:50%;" />
 >
 > ---
 >
 > 练习3：基于练习1的结果，画出`insert(21)`后的$B^+-Tree$
 >
-> <img src="F:\work\notes\UCAS_Database\fig\answer3.png" alt="answer3" style="zoom:50%;" />
+> <img src=" \fig\answer3.png" alt="answer3" style="zoom:50%;" />
 >
 > ---
 >
 > 练习4：基于练习3的结果，画出`insert(17)`后的$B^+-Tree$
 >
-> <img src="F:\work\notes\UCAS_Database\fig\answer4.png" alt="answer3" style="zoom:50%;" />
+> <img src=" \fig\answer4.png" alt="answer3" style="zoom:50%;" />
 
 
 
@@ -1563,7 +1563,7 @@ where Major = '计算机';
 
 #### 字典树Trie/Radix Tree
 
-<img src="F:\work\notes\UCAS_Database\fig\Trie_Tree.png" alt="Trie_Tree" style="zoom:50%;" />
+<img src=" \fig\Trie_Tree.png" alt="Trie_Tree" style="zoom:50%;" />
 
 - 把key切分为多个段，每段S bits（S for Span）
 
@@ -1584,11 +1584,11 @@ Span = 8 存储一个字节时，也会产生只有一个孩子的节点，造�
 
 排序文件+多层索引
 
-<img src="F:\work\notes\UCAS_Database\fig\ISAM.png" alt="ISAM" style="zoom:50%;" />
+<img src=" \fig\ISAM.png" alt="ISAM" style="zoom:50%;" />
 
 - 插入：索引部分不变，数据部分增加溢出页
 
-<img src="F:\work\notes\UCAS_Database\fig\ISAM_insert.png" alt="ISAM_insert" style="zoom:50%;" />
+<img src=" \fig\ISAM_insert.png" alt="ISAM_insert" style="zoom:50%;" />
 
 #### 支持多个重复的键
 
@@ -1661,7 +1661,7 @@ Span = 8 存储一个字节时，也会产生只有一个孩子的节点，造�
     - 还是会遇到上面的无法支持典型查询类型的问题
 - 方法2：Z-Order编码
   - 基本思想：多维数据放入一维，把二维数据点重排列嵌入一维数轴，这样二维空间中相近的点在排列的一维顺序中也接近
-  - <img src="F:\work\notes\UCAS_Database\fig\z_order_map.png" alt="z_order_map" style="zoom:50%;" />
+  - <img src=" \fig\z_order_map.png" alt="z_order_map" style="zoom:50%;" />
   - 编码转换映射计算：
   - $X=X_kX_{k-1}\dots X_1X_0\;\;Y=Y_kY_{k-1}\dots Y_1Y_0$
   - $Z-code(X,Y) = X_kY_kX_{k-1}Y_{k-1}\dots X_1Y_1X_0Y_0$
@@ -1722,8 +1722,8 @@ Span = 8 存储一个字节时，也会产生只有一个孩子的节点，造�
 
 - 每个树节点代表二维空间中的一个长方形，内部节点等分为四个子长方形，对应四个孩子节点
 - 如果子树的记录点可以存放在一个页中，就可以用一个叶子节点表示；否则就生成一个内部节点，需要进一步划分为4个孩子节点
-- <img src="F:\work\notes\UCAS_Database\fig\quad_tree.png" alt="quad_tree" style="zoom:50%;" />
-- <img src="F:\work\notes\UCAS_Database\fig\quad_tree_example.png" alt="quad_tree_example" style="zoom:50%;" />
+- <img src=" \fig\quad_tree.png" alt="quad_tree" style="zoom:50%;" />
+- <img src=" \fig\quad_tree_example.png" alt="quad_tree_example" style="zoom:50%;" />
 - 点查询：与当前节点比较，判断是四个象限里哪一个，然后找下去，找到一条根到叶子的路径
 - 部分匹配：只看一个维度的值进行判断
 - 范围查询：同上，依次找
@@ -1738,9 +1738,9 @@ K维四叉树：
 
 - 每层轮流用下一个维度，这个维度分为两半
 
-<img src="F:\work\notes\UCAS_Database\fig\kd_tree.png" alt="kd_tree" style="zoom:50%;" />
+<img src=" \fig\kd_tree.png" alt="kd_tree" style="zoom:50%;" />
 
-- <img src="F:\work\notes\UCAS_Database\fig\kd_tree_example.png" alt="kd_tree_example" style="zoom:50%;" />
+- <img src=" \fig\kd_tree_example.png" alt="kd_tree_example" style="zoom:50%;" />
 
 - 查询：
   - 部分匹配：递归遍历整个树，在对应维度剪枝
@@ -1752,7 +1752,7 @@ K维四叉树：
   - 可能会使树不均衡
 - 删除：
   - 删除叶子节点无所谓，但删除内部节点需要找到对应维度的替代节点
-  - <img src="F:\work\notes\UCAS_Database\fig\delete.png" alt="delete" style="zoom:50%;" />
+  - <img src=" \fig\delete.png" alt="delete" style="zoom:50%;" />
 - 支持外存存储
 - 多路KD Tree
 
@@ -1776,7 +1776,7 @@ MBR(Minimum Bounding Rectangle)
 - 对节点的要求
   - 每个节点中MBR的项满足$m<n<M$
 
-<img src="F:\work\notes\UCAS_Database\fig\r_tree.png" alt="r_tree" style="zoom:50%;" />
+<img src=" \fig\r_tree.png" alt="r_tree" style="zoom:50%;" />
 
 - 查询：类似四叉树
 - 插入：
@@ -1860,7 +1860,7 @@ where语句中包含同一个表的多个属性
 - 索引index的信息
 - 视图view的信息
 
-<img src="F:\work\notes\UCAS_Database\fig\catalog_content.png" alt="catalog_content" style="zoom:50%;" />
+<img src=" \fig\catalog_content.png" alt="catalog_content" style="zoom:50%;" />
 
 系统目录的存储：目录也可以存储在关系表中
 
@@ -1874,13 +1874,184 @@ where语句中包含同一个表的多个属性
 - Tuple-at-a-time：产生一个tuple就返回给父节点，减少中间结果
   - 调用很多次，每次返回一条记录
   - 又称火山模型、iterator迭代方法
-  - 
+  - 中间结果小，但是代码执行路径很长
+- 多线程流水线：把operator分为多个子树，每个线程负责一个子树
+
+#### 关系代数算法的常见思路
+
+- 索引：快速查询
+- 哈希：找到相同属性的记录
+- 提前排序：方便操作的实现
 
 ### 选择
+
+1. 无索引未排序的数据
+
+   - R.attr上没有索引，关系表对于R.attr是无序的
+
+   - 访问方式：文件扫描
+
+   - IO代价：设R有$M_R$个数据页，那么代价为$M_R$
+
+2. B+Tree索引
+   - R.attr上有B+Tree索引
+   - 访问方式1：B+Tree索引
+     - 聚簇：叶子节点即为数据页，最高效
+     - 非聚簇：叶子节点存RecordID，随机读取记录
+   - 访问方式2:文件扫描——同无索引
+3. 非聚簇索引的代价和访问优化
+   - 代价：<img src="fig/price1.png" alt="price1" style="zoom:50%;" />
+   - 访问优化：先排序RecordID后读取
+     - 原因：空间局部性（对于一个数据页中有多条符合条件的记录时，只需要读一次）
+     - 减少磁头移动距离，节省seek实践
+4. 哈希索引、等值比较
+   - R.attr上有哈希索引
+   - 比较操作为等值比较
+   - 访问方式1: 哈希索引——找到满足条件的RecordID，随机访问读取记录
+   - 访问方式2:文件扫描——同无索引
+   - 代价：<img src="fig/price2.png" alt="price2" style="zoom:50%;" />
+
+#### 多个选择条件
+
+- 文件扫描：可以求解任意复杂的选择条件
+- 先求解一个合取条件：先求解一个单个条件的合取项，再进一步求解其他条件
+- 使用位图索引：选择条件涉及的每个列都有位图索引时，获得每个选择条件的位图，然后计算获得总位图
+- 利用多个索引：多个选择属性有索引，类似方法3，得到符合每个子条件的RecordID集合，然后计算
 
 ### 投影
 
 ### 排序和外排序
+
+场景：
+
+1. Order by子句
+2. 新建索引操作
+3. 其他算法的实现(join/distinct/group by)
+
+
+
+#### 内存排序算法
+
+`O(n)`：选择排序、冒泡排序、插入排序
+
+`O(NlogN)`：快速排序、归并排序、堆排序
+
+`O(N)`：基数排序
+
+外存排序：
+
+- 输入表R, |R| > M
+- 先生成有序的数据段：从R中读入下M个页，在内存中对其内存排序，写出称为一个Run，$k_r=\frac{|R|}{M}$
+- 再合并数据段
+- IO开销：
+  - run generation：读|R|页，写|R|页
+  - merge run：读|R|页
+- 单层merge最多可以把M-1个Run归并为1个Run(M-1个输入缓冲页，1个输出缓冲页)，每个Run为M大小，最大输入数据为$M(M-1)$大小
+
+- 多层Merge：输入数据大于$M(M-1)$页
+  - 需要多层merge，层数为$\log_{M-1}\frac{|R|}{M}$
+
+
+
+Replacement Selection内存排序算法
+
+- 目的：产生更长的Run，从而减少Run的个数，降低Merge层数
+
+- 思路(从小到大排序)
+  - 找到最小的记录输出
+- 可以证明：算法产生的Run的平均长度为2M，可以减少Run的数量，但效率很低，cache miss较多
+
+
+
+使用B+Tree获得排序数据
+
+- B+Tree的叶子节点给出了顺序
+- 聚簇索引直接访问，二级索引根据RecordID，基于数据量进行考虑
+
+
+
+对于operator-at-a-time：直接实现排序即可
+
+对于迭代接口：在open时需要扫描全部的输入数据，然后run generation，在getNext阶段生成下一条有序的结果记录
+
+
+
+
+
+### 查询处理(2)
+
+#### 连接
+
+- equi-join
+
+  1. 嵌套循环
+
+     - 直接嵌套：性能分析——外循环页数+外循环页数\*内循环页数\* page记录数
+     - 改进1：利用大内存，每次读入(M-2)页的R，内循环所需的次数除以(M-2)
+     - 改进2：在S的join key上已有索引，内循环所需次数变为$M_R B H$
+
+  2. 排序
+
+     - 先排序，然后归并连接
+     - run generation + merge
+     - <img src="fig/merge.png" alt="merge" style="zoom:50%;" />
+     - 需要$log_{M-1}(\frac{M_R}{M} + \frac{M_S}{M})$层归并
+     - 总代价需要$3(M_R + M_S)$，假设一遍归并，只需要读一次R的run和S的run
+
+  3. 哈希
+
+     - 等值连接——找相同的值
+
+     - 思路：哈希后匹配的记录在同一个桶内
+
+     - Simple hash join：
+
+       - build读R建立hash table
+       - probe读S访问hash table找到所有的匹配
+       - 如果R比内存大：IO划分，把R和S划分为小块
+         - $R_j$中记录的匹配只存在于相应的$S_j$中，因为匹配的记录hash(join key)必然相同
+
+     - GRACE Hash Join
+
+       1. 对R进行IO划分
+       2. 对S进行IO划分
+       3. 然后遍历，对划分进行simple join hash
+
+       - 性能分析：
+
+#### 去重
+
+#### 分组+聚集
+
+#### 集合操作
+
+#### 内存数据库
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1947,11 +2118,11 @@ ACID：DBMS保证事物的ACID性质
 数据冲突带来的问题
 
 - Read uncommitted data 写后读：T2 commit之前，T1读了T2修改过的数据
-- <img src="F:\work\notes\UCAS_Database\fig\data_race_1.png" alt="data_race_1" style="zoom:50%;" />
+- <img src=" \fig\data_race_1.png" alt="data_race_1" style="zoom:50%;" />
 - Unrepeatable reads读后写：T1在T2 commit之前写了T2读的数据，T2再次读同一个数据，会有不同的值
-- <img src="F:\work\notes\UCAS_Database\fig\data_race_2.png" alt="data_race_2" style="zoom:50%;" />
+- <img src=" \fig\data_race_2.png" alt="data_race_2" style="zoom:50%;" />
 - Overwrite uncommitted data 写后写：T2 commit之前，T1重写了T2已经修改了的数据
-- <img src="F:\work\notes\UCAS_Database\fig\data_race_3.png" alt="data_race_3" style="zoom:50%;" />
+- <img src=" \fig\data_race_3.png" alt="data_race_3" style="zoom:50%;" />
 
 解决数据冲突的思路：两大解决方案
 
@@ -1984,7 +2155,7 @@ ACID：DBMS保证事物的ACID性质
 - 细节2：lock granularity
   - 锁的粒度，写锁的祖先必须为写锁
   - 加锁情况
-  - <img src="F:\work\notes\UCAS_Database\fig\lock1.png" alt="lock1" style="zoom:50%;" />
+  - <img src=" \fig\lock1.png" alt="lock1" style="zoom:50%;" />
 - 实现细节3：deadlock
   - 死锁条件：循环等待
   - 死锁避免：
@@ -2006,9 +2177,9 @@ ACID：DBMS保证事物的ACID性质
   - 基本思想：确保事务能够按照时间戳顺序执行
     - 当T访问O时，比较TS(O)和RTS(O)、WTS(O)
     - 发现异常时，abort/restart事务
-  - <img src="F:\work\notes\UCAS_Database\fig\trans_read.png" alt="trans_read" style="zoom:50%;" />
-  - <img src="F:\work\notes\UCAS_Database\fig\trans_write.png" alt="trans_write" style="zoom:50%;" />
-  - <img src="F:\work\notes\UCAS_Database\fig\btso.png" alt="btso" style="zoom:50%;" />
+  - <img src=" \fig\trans_read.png" alt="trans_read" style="zoom:50%;" />
+  - <img src=" \fig\trans_write.png" alt="trans_write" style="zoom:50%;" />
+  - <img src=" \fig\btso.png" alt="btso" style="zoom:50%;" />
 
 ### Multi-version Concurrency Control(MVCC)
 
@@ -2025,8 +2196,8 @@ ACID：DBMS保证事物的ACID性质
 - T读O：找到一个最大的版本满足**写时间戳小于等于TS(T)**
   - 所有的读都可以满足，不会引起abort
 - T写O：找到比TS(T)大的下一个version
-- <img src="F:\work\notes\UCAS_Database\fig\mvcc_write.png" alt="mvcc_write" style="zoom:50%;" />
-- <img src="F:\work\notes\UCAS_Database\fig\mvcc_write1.png" alt="mvcc_write1" style="zoom:50%;" />
+- <img src=" \fig\mvcc_write.png" alt="mvcc_write" style="zoom:50%;" />
+- <img src=" \fig\mvcc_write1.png" alt="mvcc_write1" style="zoom:50%;" />
 
 ### Optimistic Concurrency Control(OCC)
 
@@ -2034,7 +2205,7 @@ ACID：DBMS保证事物的ACID性质
 
 执行过程
 
-<img src="F:\work\notes\UCAS_Database\fig\occ.png" alt="occ" style="zoom:50%;" />
+<img src="\fig\occ.png" alt="occ" style="zoom:50%;" />
 
 ### Snapshot Isolation
 
@@ -2063,11 +2234,432 @@ Snapshot快照：一个时点的数据库数据状态快照
 
 ### Crash Recovery崩溃恢复
 
-#### 持久性的实现
+#### 持久性的简单实现
+
+事物提交之后，结果持久有效，crash也不消失；crash时，没有提交的事务不写硬盘
+
+思路：事务执行时，将修改缓存在主存，不写硬盘；在提交时才将修改都写回硬盘，党写硬盘完成后，才commit
+
+问题：
+
+- 性能（缓冲池+随机写+等待写完成）
+- 正确性问题：写多个page，中间掉电，就会破坏原子性
+
+#### 缓冲池策略与崩溃恢复
+
+1. Steal：缓冲池可以任意替换和写回dirty的数据页；
+   - 对应No Steal：在事务commit前，修改过的数据页不能被替换
+   - Undo：crash发生时，对于正在进行的活跃事物必须abort，需要undo，即丢弃修改内容，返回修改前状态
+2. Force
+   - 事务提交时把修改过的数据页都flush到硬盘
+   - No Force：不必强制flush
+   - Redo：crash发生，已提交事务的数据页还没有写回硬盘，需要redo，即将修改内容写回硬盘
+3. <img src="fig/crash_recovery.png" alt="crash_recovery" style="zoom:50%;" />
+
+
+
+#### WAL写前日志(Write Ahead Logging)
+
+- 事务日志记录：
+  1. 事务的修改操作会产生日志记录
+  2. 事务的开始、提交、丢弃也会产生日志记录
+  3. checkpoint会产生日志记录
+  4. 其他日志记录，如undo
+- 事务日志：
+  1. 事务日志在持久性存储中(外存)——一组文件或一个文件
+  2. 日志记录被追加到日志文件末尾——日志文件是append-only的，按照LSN(log sequence number)顺序添加
+  3. 日志文件中每个页有checksum
+- 日志的种类
+  1. logical log：记录sql操作(insert、delete、update)——日志小，恢复较为复杂，要求确定性假设
+  2. physical log：记录修改前和修改后的整个物理数据页——日志大，正常运行代价也大
+  3. Physiological log：记录被修改的页号(Physical)，以及页内部记录修改的操作(Logical)[insert, delete, update, 旧值、新值]
+  4. 通常采用Physiological log
+- Write-Ahead Logging
+  - Logging总是先于实际的操作，先记录logging再实际操作
+  - 写操作：先logging，再执行写操作
+  - commit：先记录commit日志记录到外存的事务日志文件，然后commit
+- 持久性保证：
+  - 条件：日志是dueable的，事务日志在持久性存储上，掉电不消失
+  - 掉电时，可以根据日志发现所有写操作：总是先记录logging再操作，所以只有存入日志记录的操作才有kennel发生
+  - 崩溃恢复的原理：
+    - 判断事务是否完成
+      1. 对于一个事务，寻找它的提交日志记录
+      2. 如果找到，那么这个事务已经提交了
+      3. 如果没有，那么这个日志没有完成
+    - 保证外存数据正确
+      1. 已提交：根据日志记录，每个写操作都完成了
+      2. 未提交：根据日志记录，对每个写操作都进行检查并恢复原值
+- 如何实现
+  1. 简单方法：写日志记录时保证日志记录durable，执行一个写操作，用flush保证写操作确实写到硬盘上了
+  2. 实际：在内存中分配一个log buffer，日志写在log buffer中，当commit时，wirte+flush log buffer
+     - 改善了性能，但日志不再是durable的了
+     - 掉电后，硬盘上记录已经被修改，但是log没有记录
+     - 结局方法：关联page和log，保证日志记录一定是先于修改后的数据出现在硬盘上
+
+#### checkpoint 检查点
+
+只使用事务日志来支持崩溃恢复，会使得
+
+1. 事务日志越来越大
+2. 恢复时间过长
+
+checkpoint基本思想：
+
+- 周期性的产生检查点
+- 可以利用检查点和日志进行崩溃恢复
+- 可以利用检查点，完成旧日志的删除
+
+分类：
+
+- TCC(Transcation Consistent Checkpoint)
+  - 目标：内存中所有提交事务的修改都已经flush到硬盘，硬盘上没有活跃事务的dirty修改
+  - 方法：启动checkpoint，等待系统达到静止——不再接受新的事务
+    - 如果有abort的事务，那么undo
+    - 把内存中所有dirty页写回硬盘
+    - 在日志中写一个checkpoint记录
+  - 恢复：仅需要最后一个checkpoint加之前的log，checkpoint之前的log可以删除
+  - 问题：代价很大，正常执行受到很大影响
+- ACC(Action Consistent Checkpoint)
+  - 目标：把内存所有dirty数据页都flush到硬盘
+  - 方法：启动checkpoint，系统暂停所有事务，写回所有内存dirty页，在日志中写一个checkpoint记录
+  - 效果：redo只需要从最后一个checkpoint开始
+  - 问题：对正常执行影响较大
+- Fuzzy Checkpoint
+  - checkpoint记录数据库一个时刻的状态信息，包括
+    - 活跃事务
+    - 内存脏页列表
+  - 定期执行checkpoint，把checkpoint写入事务日志
+  - 不需要写回数据页，也不需要暂停系统，性能影响小
+- Log Truncation
+  - 什么情况下删除日志？
+    - 崩溃恢复时
+    - 对应的事务已经提交——不需要Undo
+    - 对应的写操作已经在硬盘上了——不需要Redo
+  - LSN=min(活跃事务最早的LSN，脏页最早的尚未写回硬盘的LSN)
+  - 热点数据问题——hot page经常被修改，但从在缓冲池中
+    - 可以在checkpoint中发现这样的hot page，然后定期强制写回硬盘
+
+#### 崩溃恢复
+
+基本思想：得到崩溃点时的状态——活跃事务列表和内存脏页列表
+
+redo阶段：redo使得硬盘状态反应crash时刻数据库状态
+
+undo阶段：回卷所有需abort的活跃事务修改的数据页
+
+- 分析阶段1：找到最后一个检查点，总在硬盘上一个特定文件中记录检查点的位置，读这个文件，可以得知最后一个检查点的位置，如果崩溃时该文件正在写入但未完成，就找倒数第二个检查点
+
+- 分析阶段2：从检查点读到日志崩溃点，确定崩溃时的活跃事务和脏页
+  - 用检查点内容初始化，更新活跃事务列表，更新脏页表
+- Redo阶段：
+  - 目标：把硬盘状态恢复到崩溃时刻的系统状态
+- Undo阶段：
+  - 清除未commit事务的修改
+
+在崩溃恢复过程中再次崩溃？
+
+- 在日志中记录崩溃恢复的阶段
+- 再次crash，再次恢复
+  - 未完成分析——从头开始恢复
+  - 完成了分析，未完成redo——进行redo，不需要再写已经修复的page了
+  - 完成了redo，未完成undo——进行undo，从最后一条CLR记录指向位置开始反向扫描
+
+#### 备份系统
+
+介质故障的恢复
+
+- 硬盘坏了，日志也可能损坏——RAID
+- RAID坏了，需要定期手动备份数据库，无法恢复最新状态
+- 自动备份数据库——主从备份，主系统故障，切换从系统
+- 容灾：整个数据中心坏了——两地三中心备份
+
+
+
+双机热备
+
+- 主机(Primary)宕机，切换备机(Backup)
+- 可用于单机数据库和分布式数据库
+
+1. 把服务请求同时发给两台机器，不可以，因为并发控制的执行结果可能不同
+2. 主机提供服务，备机日志拷贝+redo，保证数据库内容一致
 
 
 
 
+
+
+
+## 数据仓库 Data Warehouse
+
+
+
+<img src="fig/data_warehouse.png" alt="data_warehouse" style="zoom:50%;" />
+
+### OLAP与数据仓库
+
+Online Analytical Processing联机分析处理
+
+OLAP：分析型负载
+
+数据仓库：运行AP负载的数据库系统
+
+目标：数据分析，通过数据库来自动化原来需要人工的分析
+
+|     数据仓库(AP)     |     事务处理(TP)     |
+| :------------------: | :------------------: |
+|   少数数据分析操作   |     大量并发事务     |
+| 每个操作访问大量数据 | 每个事务访问数据很少 |
+|   分析操作以读为主   |         读写         |
+|     包括历史数据     |   主要是目前的数据   |
+|  TPC-H, TPC-DB, SSB  |     TPC-C,TPC-E      |
+
+#### HATP: Hybrid Transactional and Analytical Processing
+
+- 系统中包含TP和AP，逻辑上是一份数据，既支持TP事务，也支持AP分析
+
+- 与数据仓库不同
+  - 数据量可能小于AP数据仓库，可能不包含历史数据
+  - 数据仓库可以包含多个数据源的数据
+- 架构方式：
+- <img src="fig/hatp.png" alt="hatp" style="zoom:50%;" />
+
+
+
+### 星型模式(Star Schema)和Data Cube
+
+一个很大的Fact table + 多个dimension table
+
+- Fact Table
+  - 对应某种业务活动的数值信息
+  - 每行对应一次业务活动
+  - 每列包含外键(引用dimension table的主键)和数值信息
+  - 特点：行数很多，增长很快；每行大小较小，外键和数值信息都是数值类型
+- Dimension Table
+  - 对应一个实体集
+  - 特征：记录比较大，包含较多列，行数较少，相对稳定
+- Fact table是数据仓库占主要空间的部分，因此设计目标需要减少fact记录大小
+  - 如：dimension表采用自增数字的主键
+
+
+
+#### 雪花模式❄️Snowflake
+
+Dimension还有子表，通过主键-外键连接
+
+问题：比星型模式更加复杂，Query需要更多Join操作，性能变差
+
+解决办法：把join后结果作为dimension表，消除snowflake分支
+
+
+
+#### Data Cude数据立方
+
+<img src="fig/data_cube.png" alt="data_cube" style="zoom:50%;" />
+
+- rollup上卷——把一个维度合并，属于降维
+
+<img src="fig/rollup.png" alt="rollup" style="zoom:50%;" />
+
+- drill down下钻——rollup的逆操作，把该维度的和分解，增维
+
+<img src="fig/drilldown.png" alt="drilldown" style="zoom:50%;" />
+
+- slice切片——在某个维度上选一个值
+
+<img src="fig/slice.png" alt="slice" style="zoom:50%;" />
+
+- dice切块——多个维度上取多个值
+
+<img src="fig/dice.png" alt="dice" style="zoom:50%;" />
+
+
+
+#### ROLAP & MOLAP
+
+ROLAP: Relational OLAP
+
+- 数据立方存储在关系表中，使用SQL查询语言来支持运算
+- 优点：支持大量数据，支持维度大的情况
+- 缺点：性能弱于MOLAP
+
+MOLAP：Multidimensional OLAP
+
+- 专门的多维数据结构来表达Data Cube
+- 实现计算好单个格子的聚集值
+- 优点：性能好，操作速度快
+- 缺点：维数大，占用大量空间
+
+
+
+#### RDBMS中的Group by Cube
+
+- `cube(A,B,C)`计算lattice的所有元素
+- `rollup(A,B,C)`计算ABC，AB，A，total
+
+
+
+### 数据存储
+
+#### 面向数据仓库的数据存储优化
+
+特点：大量读分析操作，批量修改
+
+列式存储(Column Store)：如果只访问Fact表的少数几列，减少访问的数据量——列式存储、PAX
+
+列式优化存储：对于数据扫描+过滤操作，减少内存访问的数据量——VBP、ByteSlice
+
+- 列示存储更容易压缩，每个文件的数据类型一致
+- 多列拼接：需要额外代价
+
+
+
+##### PAX
+
+- 记录先分为Row Group
+- 每个行组内部按照列式存储
+
+
+
+##### VBP
+
+- 每个bit位连续存储，同一个数据的不同bit位，不连续
+- 适合SIMD指令操作
+- 过滤：从高到低按位比较，设置结果bit vector
+- 读一个值：需要多次读(cache miss)然后拼接
+
+##### ByteSlice
+
+- VBP的改进
+
+- 每8-bit字节存为一列
+- 过滤和读一个值类似，但是拼接效率更高
+
+### 数据索引
+
+#### Scan Index
+
+目标：优化数据扫描+过滤运算
+
+- B+Tree，叶子节点按照值有序排列，但产生result bit vector有一定代价
+- Bitmap Index位图索引：
+- Column Sketches：将取值划分为区间，在过滤时先确定区间
+
+
+
+#### 固化视图Materialized View
+
+- 普通的视图：实际上是一个被存下来的SQL语句
+- 固化视图：SQL语句已经执行，结果放入了一个表
+
+固化视图的更新
+
+1. 重新计算——refresh，代价高用时长
+2. 增量计算
+
+
+
+### 查询算法
+
+星型✨模式中的Join优化
+
+特点：Fact表很大，Dimension较小
+
+1. Fact表连接Dimension A再连接Dimension B
+2. Dimension表进行笛卡尔积，再与Fact表连接。
+
+
+
+
+
+## 并行分布式数据库
+
+### Shared Memory
+
+多芯片/多核CPU + 主存系统：单台服务器
+
+内存池化(Disaggregated Memory)
+
+### Shared Disk
+
+多机连接相同的数据存储设备
+
+存算分离
+
+### Shared nothing
+
+#### 系统架构
+
+一个coordinator运行前端产生并行的query plan
+
+每台worker服务器上都有后端
+
+coordinator协调worker服务器执行
+
+#### 数据在哪存
+
+划分Partitioning
+
+- 数据存储在多台服务器上
+- Horizontal Partitioning = Sharding
+- 每台服务器负责一个key的区间，所有区间都不重叠
+
+备份Replication
+
+- 为了提高可靠性
+
+
+
+### 分布式查询处理
+
+#### 并行执行
+
+1. Filter和Project很容易并行计算，在每条记录上完成即可
+
+2. Join：
+
+   - 如果partition key是join key，那么可以并行
+
+   - 如果不是，那么先在join key上进行划分，然后在每台worker上join——需要大量的数据传输
+
+   - Semi Join
+     - 目标：优化分布式连接运算的数据传输代价
+       - 思路：先把不产生匹配的记录过滤掉
+
+3. Group-by+Aggregation
+   - 每个worker分别在本机上进行操作，获得中间结果
+   - 然后分发中间结果，使得同一个Group的发到同一台Worker上
+   - 合并每个Group的所有Worker计算的Aggregation中间结果，得到每个Group的最终Aggregation结果
+
+### 分布式事务处理
+
+- 如果一个事务的读写分布在同一台机器上：就是普通事务
+- 如果是不同机器：
+  - 并发控制：加锁
+    - 集中式：有一个加锁服务器管理全局统一的锁空间，2-phase-locking进行并发控制
+    - 分布式：每个worker各自管理自己的锁
+      - 2 Phase commit协议：participant 完成分布式事务的部分读写操作
+      - Phase1：voting——log记录prepare消息，coordinator向每个participant发送query to commit消息，每个participant根据本地情况回答yes/no，并记录log prepare和回答
+      - Phase2：completion——所有回答都为yes，才commit，否则abort
+  - 崩溃恢复：
+    - voting前宕机：本地abort
+    - voting后，prepare前宕机：结果未知，需要联系coordinator
+    - completion后宕机：分布式事务处理结果已经收到，进行本地的commit或abort
+
+### 云数据库介绍
+
+#### Amazon Aurora
+
+- 云TP数据库，存算分离
+
+#### Alibaba PolarDB
+
+- HTAP：TP+AP
+- 存算分离
+
+#### Snowflake
+
+- 云AP型数据库
+- 存算分离
 
 
 
